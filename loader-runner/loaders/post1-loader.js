@@ -4,7 +4,7 @@ function loader(source) {
 }
 
 loader.pitch = function () {
-  console.log('post2 pitch');
+  console.log('post1 pitch');
 };
 
 module.exports = loader;

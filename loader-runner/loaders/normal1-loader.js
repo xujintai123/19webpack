@@ -4,7 +4,7 @@ function loader(source) {
 }
 
 loader.pitch = function () {
-  console.log('normal2 pitch');
+  console.log('normal1 pitch');
 };
 
 module.exports = loader;

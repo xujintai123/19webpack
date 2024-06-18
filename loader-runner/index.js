@@ -17,12 +17,13 @@ const rules = [
     use: [
       'normal1-loader',
       'normal2-loader',
-      {
-        loader: path.resolve(__dirname, './loaders/babel-loader/index.js'),
-        options: {
-          name: 'wang.hayu',
-        },
-      },
+      // 先注掉、会引起 resolveLoader 函数执行报错，因为 path.resolve(__dirname, './loaders', loader) 中的 loader 需要为字符串
+      // {
+      //   loader: path.resolve(__dirname, './loaders/babel-loader/index.js'),
+      //   options: {
+      //     name: 'wang.hayu',
+      //   },
+      // },
     ],
   },
   // 前置loader
@@ -85,6 +86,7 @@ if (request.startsWith('!!')) {
 } else if (request.startsWith('!')) {
   loaders.push(...postLoaders, ...inlineLoaders, ...preLoaders);
 } else {
+  // 这里传入的loaders参数的顺序是我刻意而为之的。是按照pitch阶段的执行顺序来处理的: post -> inline -> normal -> pre
   loaders.push(
     ...[...postLoaders, ...inlineLoaders, ...normalLoaders, ...preLoaders]
   );
