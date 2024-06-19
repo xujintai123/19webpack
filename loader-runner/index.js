@@ -1,7 +1,8 @@
 // 入口文件
 const fs = require('fs');
 const path = require('path');
-const { runLoaders } = require('loader-runner');
+// const { runLoaders } = require('loader-runner');
+const { runLoaders } = require('./core');
 
 // 模块路径
 const filePath = path.resolve(__dirname, './title.js');

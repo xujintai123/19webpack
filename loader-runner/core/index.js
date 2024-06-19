@@ -38,7 +38,7 @@ function runLoaders(options, callback) {
     enumerable: true,
     get: function () {
       return loaderContext.loaders
-        .slice(loaderContext + 1)
+        .slice(loaderContext.loaderIndex + 1)
         .map((i) => i.request)
         .concat(loaderContext.resourcePath)
         .join('!');
@@ -49,7 +49,7 @@ function runLoaders(options, callback) {
     enumerable: true,
     get: function () {
       return loaderContext.loaders
-        .slice(loaderContext)
+        .slice(loaderContext.loaderIndex)
         .map((l) => l.request)
         .concat(loaderContext.resourcePath)
         .join('!');
@@ -60,7 +60,7 @@ function runLoaders(options, callback) {
     enumerable: true,
     get: function () {
       return loaderContext.loaders
-        .slice(0, loaderContext.index)
+        .slice(0, loaderContext.loaderIndex)
         .map((l) => l.request)
         .join('!');
     },
@@ -141,6 +141,8 @@ function convertArgs(args, raw) {
  * 当pitch阶段存在返回值时 此时为pitch阶段的返回值
  * @param {*} callback runLoaders中的callback函数
  */
+/* iterateNormalLoaders 和 runSyncOrAsync 形成递归，runSyncOrAsync 中执行 normalFunction，并拿 normalFunction 的结果
+  作为参数继续调用 iterateNormalLoaders */
 function iterateNormalLoaders(options, loaderContext, args, callback) {
   // 越界元素判断 越界表示所有normal loader处理完毕 直接调用callback返回
   if (loaderContext.loaderIndex < 0) {
@@ -178,6 +180,8 @@ function iterateNormalLoaders(options, loaderContext, args, callback) {
  * @param {*} loaderContext loader中的this对象
  * @param {*} callback runLoaders中的callback函数
  */
+/* iteratePitchingLoaders 和 runSyncOrAsync 形成递归，runSyncOrAsync 中执行 pitchFunction，并拿 pitchFunction 的结果
+  作为参数继续调用 iteratePitchingLoaders */
 function iteratePitchingLoaders(options, loaderContext, callback) {
   // 超出loader个数 表示所有pitch已经结束 那么此时需要开始读取资源文件内容
   if (loaderContext.loaderIndex >= loaderContext.loaders.length) {
@@ -204,7 +208,7 @@ function iteratePitchingLoaders(options, loaderContext, callback) {
 
   // 存在pitch阶段 并且当前pitch loader也未执行过 调用loader的pitch函数
   runSyncOrAsync(
-    pitchFunction,
+    pitchFunction, // pitch函数
     loaderContext,
     [
       currentLoaderObject.remainingRequest,
@@ -238,7 +242,7 @@ function iteratePitchingLoaders(options, loaderContext, callback) {
  * @param {*} fn 需要被执行的函数
  * @param {*} context loader的上下文对象
  * @param {*} args 执行loader函数时候需要传入的参数 Array类型
- * @param {*} callback 回调函数 用来表示本次loader的执行结果
+ * @param {*} callback 回调函数 用来处理本次loader的执行结果
  */
 function runSyncOrAsync(fn, context, args, callback) {
   // 标记是否同步 默认同步
@@ -273,7 +277,7 @@ function runSyncOrAsync(fn, context, args, callback) {
     }
     if (
       result &&
-      typeof result === 'result' &&
+      typeof result === 'object' &&
       typeof result.then === 'function'
     ) {
       // 返回了一个Promise对象  等待Promise resolve后将resolve的结果带哦用callback
